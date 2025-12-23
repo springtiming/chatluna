@@ -222,15 +222,22 @@ export class ChatInterface {
         }
 
         // Process response
-        this.ctx.parallel(
-            'chatluna/after-chat',
-            arg.conversationId,
-            arg.message,
-            displayResponse as AIMessage,
-            { ...arg.variables, chatCount: this._chatCount },
-            this,
-            arg.session
-        )
+        void this.ctx
+            .parallel(
+                'chatluna/after-chat',
+                arg.conversationId,
+                arg.message,
+                displayResponse as AIMessage,
+                { ...arg.variables, chatCount: this._chatCount },
+                this,
+                arg.session
+            )
+            .catch((error) => {
+                logger.error(
+                    'Something went wrong when calling after-chat hook:'
+                )
+                logger.error(error)
+            })
 
         return { message: displayResponse }
     }
