@@ -47,11 +47,7 @@ export async function langchainMessageToGeminiMessage(
                 (message as AIMessage).tool_calls.length > 0
 
             if (role === 'function' || hasFunctionCall) {
-                return processFunctionMessage(
-                    message,
-                    // 如果使用 new api，我们应该去掉 id，，，
-                    plugin.config.useCamelCaseSystemInstruction
-                )
+                return processFunctionMessage(message)
             }
 
             const result: ChatCompletionResponseMessage = {
@@ -129,8 +125,7 @@ function parseJsonArgs(args: string) {
 }
 
 function processFunctionMessage(
-    message: AIMessage | ToolMessage,
-    removeId: boolean
+    message: AIMessage | ToolMessage
 ): ChatCompletionResponseMessage {
     const thoughtData: Record<string, any> =
         message.additional_kwargs['thought_data'] ?? {}
@@ -145,9 +140,6 @@ function processFunctionMessage(
                     name: toolCall.name,
                     args: toolCall.args
                 }
-                if (!removeId) {
-                    functionCall.id = toolCall.id
-                }
                 return {
                     functionCall,
                     ...thoughtData
@@ -161,10 +153,6 @@ function processFunctionMessage(
     const functionResponse: ChatFunctionResponsePart['functionResponse'] = {
         name: message.name,
         response: parseJsonArgs(message.content as string)
-    }
-
-    if (!removeId) {
-        functionResponse.id = finalMessage.tool_call_id
     }
 
     return {
